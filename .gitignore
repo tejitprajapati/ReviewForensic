@@ -1,0 +1,88 @@
+# Python virtual environments
+venv/
+.venv/
+env/
+
+# Python temporary files
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Local databases and private review history
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+
+# Project backups
+project_backups/
+database/backups/
+*.bak
+*.backup
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials.json
+secrets.json
+
+# Editor and operating system files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Logs and temporary files
+*.log
+*.tmp
+*.swp
+*.swo
+
+# Generated reports and exports
+reports/*.csv
+reports/*.xlsx
+reports/*.pdf
+exports/
+uploads/
+
+# Development backup files
+*_backup.py
+*_backup.html
+*_backup_*.html
+*_before_*.py
+*_before_*.html
+
+# Private datasets
+datasets/*.csv
+!datasets/sample_format.csv
+
+# Unknown local file
+/x
+
+# Old development versions
+*_before_*.css
+*_before_*.js
+
+# Local machine and personal information
+*.sqlite*
+*.db*
+*.log
+*.ipynb_checkpoints
+
+# Private project data
+datasets/*.csv
+!datasets/sample_format.csv
+
+# Unknown local file
+/x
+
+# Old development versions
+*_before_*.css
+*_before_*.js

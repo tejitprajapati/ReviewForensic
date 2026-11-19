@@ -1,0 +1,92 @@
+{% set result = result | default(none) %}
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/><title>ReviewGuard AI</title><style>
+:root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;background:#0b1020;color:#e8edfc;font:15px system-ui,Arial}header{padding:22px 6%;border-bottom:1px solid #28334d;background:#10182b}header strong{font-size:23px;color:#8bcaff}main{max-width:1120px;margin:34px auto;padding:0 18px}.muted{color:#9faecb}.grid{display:grid;grid-template-columns:2fr 1fr;gap:22px}.card{background:#151f35;border:1px solid #2c3a58;border-radius:16px;padding:24px;margin-bottom:20px}h1{font-size:30px;margin:0 0 8px}h2{font-size:19px;margin-top:0}textarea{width:100%;min-height:160px;background:#0c1426;border:1px solid #3b4b69;border-radius:10px;color:white;padding:14px;font:inherit;resize:vertical}button{background:#3e89f5;color:white;border:0;border-radius:9px;padding:12px 19px;font-weight:700;cursor:pointer;margin-top:12px}input{margin-top:8px}.stats{display:flex;gap:10px}.stat{flex:1;background:#0e182b;border-radius:10px;padding:16px}.stat b{display:block;font-size:26px;color:#87c6ff}.result{border-left:4px solid #61c6fa}.pill{display:inline-block;padding:5px 11px;border-radius:99px;background:#294b76}.warning{background:#6a3a34}table{width:100%;border-collapse:collapse}td,th{padding:12px 8px;text-align:left;border-bottom:1px solid #2b3952}td{max-width:340px;overflow-wrap:anywhere}small{color:#9faecb}@media(max-width:750px){.grid{grid-template-columns:1fr}.stats{flex-direction:column}}
+</style><link href="/static/css/cyberpulse.css" rel="stylesheet"/></head><body>
+<nav aria-label="Dashboard navigation" id="cyberSidebar">
+<div class="cyber-brand">
+<span class="brand-icon">◈</span>
+<span>CYBERPULSE</span>
+</div>
+<div class="cyber-menu">
+<a class="active" href="#dashboard">◉ Dashboard</a>
+<a href="#reviewAnalyzer">◎ AI Scanner</a>
+<a href="#reviewChart">◉ Analytics</a>
+<a href="#modelPerformance">▤ ML Performance</a>
+<a href="#reviewHistory">◷ Review History</a>
+</div>
+<div class="cyber-sidebar-footer">
+<span class="status-dot"></span>
+    ReviewGuard AI
+  </div>
+</nav>
+<header><strong>◈ ReviewGuard AI</strong> <span class="muted"> | Review Authenticity Research Dashboard</span></header><main><h1 id="dashboard">Review analysis dashboard</h1><p class="muted">A college demonstration project. Predictions are screening indicators, not proof of deception.</p><div class="stats"><div class="stat"><b>{{total}}</b>Reviews analyzed</div><div class="stat"><b>{{fake}}</b>Flagged reviews</div><div class="stat"><b>{{total-fake}}</b>Not flagged</div></div><br/><div class="grid"><section><div class="card"><h2 id="reviewAnalyzer">Analyze a review</h2><form action="/analyze" method="post"><div class="cyber-scanner"><div class="cyber-scanner-label">◈ AI REVIEW SCANNER</div><textarea maxlength="10000" name="text" placeholder="Paste a product, hotel or restaurant review here..." required=""></textarea></div><button>Analyze review</button></form></div>{% if result %}<div class="card result"><h2>Analysis result</h2><p><span class="pill {% if result.label == 'Potentially Fake' %}warning{% endif %}">{{result.label}}</span></p><p><b>Flag score:</b> {{result.score}}% <small>(not calibrated confidence)</small></p><p><b>Sentiment:</b> {{result.sentiment}}</p><p><b>Method:</b> {{result.engine}}</p><p><b>AI authorship:</b> {{result.ai_detection}}</p><b>Reasons:</b><ul>{% for reason in result.reasons %}<li>{{reason}}</li>{% endfor %}</ul></div>{% endif %}<div class="card">
+<h2>Review Analytics</h2>
+<div data-fake="{{ fake }}" data-genuine="{{ total - fake }}" id="reviewChart">
+</div>
+</div>{% if result is defined and result and result.explanations %}
+<div class="card" id="xaiExplanation">
+<h2>Why did the model make this prediction?</h2>
+<p class="muted">
+        Top words influencing the trained ML classifier.
+      </p>
+
+      {% for item in result.explanations %}
+      <div style="margin:14px 0">
+<div style="display:flex;justify-content:space-between;gap:12px">
+<strong>{{ item.word }}</strong>
+<span>
+            {{ item.direction }}:
+            {{ "%.4f"|format(item.impact) }}
+          </span>
+</div>
+<div style="height:8px;background:#0e182a;border-radius:8px;margin-top:6px">
+<div style="
+            height:8px;
+            width:{{ [item.impact|abs * 400, 100]|min }}%;
+            background:{% if item.direction == 'Fake' %}#fb7185{% else %}#38bdf8{% endif %};
+            border-radius:8px">
+</div>
+</div>
+</div>
+      {% endfor %}
+
+      <p class="muted">
+        Contributions to the model's decision score.
+        These are not probabilities or proof of deception.
+      </p>
+</div>
+{% endif %}
+<div class="card" id="reviewHistory">
+<h2 id="reviewHistory">Recent reviews</h2>
+<div class="cp-history-controls">
+<input aria-label="Search review history" id="historySearch" placeholder="Search analyzed reviews..." type="search"/>
+<select aria-label="Filter review predictions" id="historyFilter">
+<option value="all">All reviews</option>
+<option value="fake">Flagged reviews</option>
+<option value="genuine">Not flagged</option>
+</select>
+<button id="exportHistoryCsv" type="button">Export CSV</button><button class="cp-clear-btn" id="clearHistoryBtn" type="button">Clear History</button>
+</div>
+<p aria-live="polite" class="muted" id="historyCount"></p>
+<div style="overflow-x:auto"><table><thead><tr><th>Review</th><th>Result</th><th>Score</th></tr></thead><tbody>{% for row in rows %}<tr><td>{{row.review[:95]}}</td><td>{{row.label}}</td><td>{{row.score}}%</td></tr>{% else %}<tr><td colspan="3">No analyses yet.</td></tr>{% endfor %}</tbody></table></div></div></section><aside><div class="card"><h2>Bulk CSV analysis</h2><p class="muted">Upload a UTF-8 CSV containing a column named <code>text</code>. Maximum 500 reviews, 2 MB.</p><form action="/bulk" enctype="multipart/form-data" method="post"><input accept=".csv" name="file" required="" type="file"/><button>Analyze &amp; download CSV</button></form></div>
+<div class="card" id="modelPerformance">
+<h2 id="modelPerformance">ML Model Performance</h2>
+<p class="muted">5-Fold Cross-Validation | 1,600 Reviews</p>
+<div class="stats">
+<div class="stat"><b>86.94%</b>Accuracy</div>
+<div class="stat"><b>88.80%</b>Precision</div>
+<div class="stat"><b>84.62%</b>Recall</div>
+<div class="stat"><b>86.63%</b>F1-Score</div>
+</div>
+<p class="muted">
+            Baseline results. Independent evaluation is required.
+        </p>
+</div>
+<div class="card"><h2>About the detector</h2><p>Default mode uses interpretable rules. Train the optional TF-IDF + logistic regression model on labeled reviews to activate ML predictions.</p><p class="muted">Fake-review detection and AI-generated-text detection are different tasks. This project does not claim reliable AI authorship detection.</p><a href="/docs" style="color:#8bcaff">Explore API documentation</a></div></aside></div></main><script src="/static/js/dashboard.js"></script><script defer="" src="/static/js/cyberpulse-effects.js"></script>
+<script defer="" src="/static/js/analytics-interactive.js"></script>
+<script defer="" src="/static/js/review-history.js"></script>
+<script defer="" src="/static/js/export-history.js"></script>
+<script defer src="/static/js/clear-history.js"></script>
+</body></html>

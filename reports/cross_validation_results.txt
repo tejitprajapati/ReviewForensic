@@ -1,0 +1,52 @@
+Total reviews: 1600
+
+Fold 1
+Accuracy: 84.06%
+Precision: 83.85%
+Recall: 84.38%
+F1-score: 84.11%
+Confusion matrix:
+[[134  26]
+ [ 25 135]]
+
+Fold 2
+Accuracy: 85.94%
+Precision: 88.08%
+Recall: 83.12%
+F1-score: 85.53%
+Confusion matrix:
+[[142  18]
+ [ 27 133]]
+
+Fold 3
+Accuracy: 88.75%
+Precision: 89.74%
+Recall: 87.50%
+F1-score: 88.61%
+Confusion matrix:
+[[144  16]
+ [ 20 140]]
+
+Fold 4
+Accuracy: 86.25%
+Precision: 90.85%
+Recall: 80.62%
+F1-score: 85.43%
+Confusion matrix:
+[[147  13]
+ [ 31 129]]
+
+Fold 5
+Accuracy: 89.69%
+Precision: 91.50%
+Recall: 87.50%
+F1-score: 89.46%
+Confusion matrix:
+[[147  13]
+ [ 20 140]]
+
+AVERAGE RESULTS
+Accuracy: 86.94%
+Precision: 88.80%
+Recall: 84.62%
+F1-score: 86.63%
