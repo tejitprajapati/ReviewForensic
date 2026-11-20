@@ -13,7 +13,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <div class="cp-heading">
           <span class="cp-shield">⚠</span>
           <div>
-            <strong>CYBERPULSE SECURITY</strong>
+            <strong>REVIEWFORENSIC SECURITY</strong>
             <small>Critical action confirmation</small>
           </div>
         </div>

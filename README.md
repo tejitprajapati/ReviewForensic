@@ -39,9 +39,29 @@ Restart Uvicorn after training. The dashboard will then use the saved model. Tra
 - Even trained classifiers can mistake genuine reviews for fake ones, and can learn dataset artifacts.
 - Sentiment does not establish authenticity. Negative reviews can be genuine; positive reviews can be fake.
 - **AI-generated text detection is not implemented.** The original repository's `detect_ai.py` is empty, so we do not falsely claim to have LLaMA detection.
-- The original repository's README claims metrics but does not provide trained weights in the ZIP. This project makes no accuracy claim until independently evaluated.
+- The original repository's reported metrics have not been independently verified. Our TF-IDF + Logistic Regression classifier achieved 86.94% accuracy in 5-fold cross-validation on 1,600 labeled reviews. Performance on independent external datasets has not been established.
 - SQLite history contains review text locally. Do not upload private personal information; delete `database/history.db` to clear local history.
+## Machine Learning Evaluation
 
+The TF-IDF and Logistic Regression classifier was evaluated
+using 5-fold cross-validation on 1,600 labeled reviews.
+
+### Evaluation Results
+
+- Accuracy: 86.94%
+- Precision: 88.80%
+- Recall: 84.62%
+- F1-score: 86.63%
+
+The model was trained and tested using separate folds.
+The results represent performance on the evaluated dataset
+and may differ on other real-world review datasets.
+
+The evaluation script is available at
+`scripts/evaluate_folds.py`.
+
+The evaluation output is saved in
+`reports/cross_validation_results.txt`.
 ## Suggested college report sections
 Abstract, problem statement, objectives, literature review, dataset provenance, system architecture, module descriptions, algorithm, experimental methodology, results and confusion matrix, limitations, future scope, references and attribution.
 

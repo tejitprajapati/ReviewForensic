@@ -1,3 +1,4 @@
+import os
 from fastapi.responses import RedirectResponse
 import csv, io, json, sqlite3
 from pathlib import Path
@@ -7,10 +8,18 @@ from fastapi.responses import HTMLResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from .analyzer import analyze
-ROOT=Path(__file__).resolve().parent.parent
-DB=ROOT/'database'/'history.db'
+ROOT = Path(__file__).resolve().parent.parent
+
+PUBLIC_DEMO = os.getenv("PUBLIC_DEMO", "false").lower() == "true"
+
+DB = (
+    ROOT / "database" / "public_demo.db"
+    if PUBLIC_DEMO
+    else ROOT / "database" / "history.db"
+)
+
 DB.parent.mkdir(exist_ok=True)
-app=FastAPI(title='ReviewGuard AI - College Project',version='1.0')
+app=FastAPI(title='ReviewForensic AI',version='1.0')
 app.mount(
     "/static",
     StaticFiles(directory=str(ROOT / "app" / "static")),
@@ -24,6 +33,8 @@ def connect():
     c.commit();return c
 
 def save(result):
+    if PUBLIC_DEMO:
+        return None
     with connect() as c:
         cursor=c.execute('INSERT INTO history(created,review,label,score,sentiment,engine,reasons) VALUES (?,?,?,?,?,?,?)',
         (datetime.now(timezone.utc).isoformat(timespec='seconds'),result['review'],result['label'],result['score'],result['sentiment'],result['engine'],json.dumps(result['reasons'])))
@@ -90,13 +101,24 @@ def review(request: Request, text: str = Form(...)):
     except ValueError as e:
         raise HTTPException(400, str(e))
 
+    if PUBLIC_DEMO:
+        return templates.TemplateResponse(
+            request=request,
+            name="index.html",
+            context={
+                "rows": [],
+                "total": 0,
+                "fake": 0,
+                "result": r,
+            },
+        )
+
     review_id = save(r)
 
     return RedirectResponse(
-        url=f'/?result_id={review_id}',
-        status_code=303
+        url=f"/?result_id={review_id}",
+        status_code=303,
     )
-
 @app.post('/api/analyze')
 async def api_analyze(request:Request):
     try:
@@ -123,29 +145,82 @@ async def api_analyze(request:Request):
     try:r=analyze(text)
     except ValueError as e: raise HTTPException(400,str(e))
     save(r);return r
+@app.post("/bulk")
+async def bulk(file: UploadFile = File(...)):
+    if not file.filename or not file.filename.lower().endswith(".csv"):
+        raise HTTPException(400, "Upload a CSV file")
 
-@app.post('/bulk')
-async def bulk(file:UploadFile=File(...)):
-    if not file.filename.lower().endswith('.csv'):raise HTTPException(400,'Upload a CSV file')
-    raw=await file.read(2_000_001)
-    if len(raw)>2_000_000:raise HTTPException(413,'CSV must be below 2 MB')
+    raw = await file.read(2_000_001)
+
+    if len(raw) > 2_000_000:
+        raise HTTPException(413, "CSV must be below 2 MB")
+
     try:
-        reader=csv.DictReader(io.StringIO(raw.decode('utf-8-sig')))
-        if not reader.fieldnames or 'text' not in reader.fieldnames:raise ValueError('CSV must contain a text column')
-        out=[]
-        for i,row in enumerate(reader):
-            if i>=500:break
-            text=(row.get('text') or '').strip()
-            if not text:continue
-            r=analyze(text);save(r)
-            out.append({'text':text,'prediction':r['label'],'fake_probability_percent':r['score'],'sentiment':r['sentiment'],'method':r['engine']})
-    except (UnicodeDecodeError,ValueError,csv.Error) as e:raise HTTPException(400,str(e))
-    stream=io.StringIO();writer=csv.DictWriter(stream,fieldnames=['text','prediction','fake_probability_percent','sentiment','method']);writer.writeheader();writer.writerows(out)
-    return StreamingResponse(iter([stream.getvalue()]),media_type='text/csv',headers={'Content-Disposition':'attachment; filename=review_results.csv'})
+        reader = csv.DictReader(
+            io.StringIO(raw.decode("utf-8-sig"))
+        )
+
+        if not reader.fieldnames or "text" not in reader.fieldnames:
+            raise ValueError("CSV must contain a text column")
+
+        out = []
+
+        for i, row in enumerate(reader):
+            if i >= 500:
+                break
+
+            text = (row.get("text") or "").strip()
+
+            if not text:
+                continue
+
+            r = analyze(text)
+            save(r)
+
+            out.append({
+                "text": text,
+                "prediction": r["label"],
+                "fake_probability_percent": r["score"],
+                "sentiment": r["sentiment"],
+                "method": r["engine"]
+            })
+
+    except (UnicodeDecodeError, ValueError, csv.Error) as e:
+        raise HTTPException(400, str(e))
+
+    stream = io.StringIO()
+
+    writer = csv.DictWriter(
+        stream,
+        fieldnames=[
+            "text",
+            "prediction",
+            "fake_probability_percent",
+            "sentiment",
+            "method"
+        ]
+    )
+
+    writer.writeheader()
+    writer.writerows(out)
+
+    return StreamingResponse(
+        iter([stream.getvalue()]),
+        media_type="text/csv",
+        headers={
+            "Content-Disposition": "attachment; filename=review_results.csv"
+            }
+    )
 
 
 @app.post("/history/clear")
 def clear_history():
+    if PUBLIC_DEMO:
+        raise HTTPException(
+            status_code=403,
+            detail="History deletion is disabled in public demo mode."
+        )
+
     with connect() as c:
         c.execute("DELETE FROM history")
         c.commit()

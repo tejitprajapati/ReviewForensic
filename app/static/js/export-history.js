@@ -44,7 +44,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const link = document.createElement("a");
 
         link.href = url;
-        link.download = "CyberPulse_Review_History.csv";
+        link.download = "ReviewForensic_Review_History.csv";
 
         document.body.appendChild(link);
         link.click();

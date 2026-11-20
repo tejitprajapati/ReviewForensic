@@ -19,7 +19,7 @@ document.addEventListener("DOMContentLoaded", () => {
       <button class="cp-modal-close"
               type="button"
               aria-label="Close analytics">×</button>
-      <div class="cp-modal-eyebrow">◆ CYBERPULSE INTELLIGENCE</div>
+      <div class="cp-modal-eyebrow">◆ REVIEWFORENSIC INTELLIGENCE</div>
       <h2 id="cp-modal-title">Review Analytics</h2>
       <p class="cp-modal-subtitle">
         Live statistics from your review history
