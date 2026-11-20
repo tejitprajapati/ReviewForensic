@@ -68,12 +68,20 @@ def home(request: Request, result_id: int | None = None):
 
             if row:
                 result = dict(row)
+
                 stored_reasons = json.loads(
                     result.get("reasons") or "[]"
                 )
 
+                result["reasons"] = (
+                    stored_reasons
+                    if isinstance(stored_reasons, list)
+                    else []
+                )
+
                 result["explanations"] = [
-                    item for item in stored_reasons
+                    item
+                    for item in stored_reasons
                     if isinstance(item, dict)
                     and all(
                         key in item
@@ -81,7 +89,6 @@ def home(request: Request, result_id: int | None = None):
                     )
                     and isinstance(item["impact"], (int, float))
                 ] if isinstance(stored_reasons, list) else []
-
     return templates.TemplateResponse(
         request=request,
         name='index.html',
